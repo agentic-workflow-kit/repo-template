@@ -76,6 +76,13 @@ has both tools present across the two archetypes.
 
 5. Run `pnpm install && pnpm check` to confirm the gate is green.
 
+6. **Multi-worktree dev:** add `enableGlobalVirtualStore: true` to `pnpm-workspace.yaml`. An engine
+   repo carries a real dependency tree (~70 packages), so when it is worked in more than one
+   concurrent worktree this makes each worktree's `node_modules` symlink-only into one shared store —
+   the first install populates it, later worktree installs are near-instant
+   ([pnpm.io/git-worktrees](https://pnpm.io/git-worktrees)). It is a local-dev accelerator only; CI
+   (single checkout) is unaffected. Docs/skills repos skip it.
+
 ## Deliberately omitted (add only when the repo earns it)
 
 - **turbo** — task caching pays off across many packages/tasks; a single light package does not
