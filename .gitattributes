@@ -1,0 +1,8 @@
+# Normalize line endings: store as LF, check out LF on every platform.
+* text=auto eol=lf
+
+# Shell scripts must stay LF so they run after a Windows checkout.
+*.sh text eol=lf
+
+# Generated lockfile: collapse in diffs and exclude from language stats.
+pnpm-lock.yaml -diff linguist-generated=true
