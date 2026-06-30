@@ -10,9 +10,11 @@ it grows real TypeScript source — type checking, linting, and a tested coverag
 **not** adopt it (it would over-tool prose-heavy repositories). This mirrors how the repo standard
 already varies the _source tier_ by archetype — here the _gate_ varies too.
 
-> Validated end-to-end on Node 26.4.0 with the versions below: `pnpm check` runs biome, `tsc -b`,
-> and vitest (100% coverage on the sample module) and exits 0. Re-validate and re-pin when bumping
-> any tool major.
+> Validated end-to-end on **pnpm 11.9.0 + Node 26.4.0**: `pnpm check` runs biome, `tsc -b`, and
+> vitest (100% coverage on the sample module) and exits 0, with the supply-chain hardening block
+> (below) active. Note the **Node floor is `>=22.13.0`**, not `>=22`: pnpm 11.9 itself requires
+> `>=22.13`, and vitest 4's `vite@8` requires `>=22.12`. Re-validate and re-pin when bumping any
+> tool major.
 
 ## Lint/format stance
 
@@ -76,12 +78,26 @@ has both tools present across the two archetypes.
 
 5. Run `pnpm install && pnpm check` to confirm the gate is green.
 
-6. **Multi-worktree dev:** add `enableGlobalVirtualStore: true` to `pnpm-workspace.yaml`. An engine
-   repo carries a real dependency tree (~70 packages), so when it is worked in more than one
-   concurrent worktree this makes each worktree's `node_modules` symlink-only into one shared store —
-   the first install populates it, later worktree installs are near-instant
-   ([pnpm.io/git-worktrees](https://pnpm.io/git-worktrees)). It is a local-dev accelerator only; CI
-   (single checkout) is unaffected. Docs/skills repos skip it.
+6. **Extend `pnpm-workspace.yaml` with the engine keys** (the base template ships the shared
+   supply-chain baseline; engine repos add):
+
+   ```yaml
+   savePrefix: "" # exact version pins on `pnpm add` (lockfile-as-truth)
+   verifyDepsBeforeRun: warn # flag a stale node_modules before scripts (promote to error later)
+   strictPeerDependencies: true # surface peer mismatches early
+   ```
+
+   `allowBuilds: {}` from the baseline is sufficient for this toolchain — biome, TypeScript, vitest,
+   and esbuild/vite need no install scripts (validated). Add an entry only if a future native dep does.
+
+7. **Multi-worktree dev (optional):** you _may_ add `enableGlobalVirtualStore: true` to
+   `pnpm-workspace.yaml` so multiple concurrent worktrees share one symlink-only `node_modules`
+   (first install populates the store, later worktree installs are near-instant —
+   [pnpm.io/git-worktrees](https://pnpm.io/git-worktrees)). **ESM caveat:** pnpm documents that this
+   does not work for ESM dependencies that import packages not declared in their own `package.json`
+   (Node ignores `NODE_PATH` under ESM). Our engine repos are ESM, so **validate per repo and remove
+   the setting if you hit resolution errors**. Local-dev accelerator only; CI is unaffected. Docs and
+   skills repos skip it.
 
 ## Deliberately omitted (add only when the repo earns it)
 
