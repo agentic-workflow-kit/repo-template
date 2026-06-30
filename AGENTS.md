@@ -30,10 +30,12 @@ dirs (skills/, packages/, …) here too once they exist.>
   resolved, squash-merge. Conventional commit subjects (`feat:`/`fix:`/`docs:`/…); no attribution
   footers.
 - **Setup & worktrees:** `pnpm dev:setup` prepares a checkout (Node check, Corepack, frozen
-  install); `pnpm worktree:new <branch>` creates a worktree and runs setup in it. Worktrees are
-  **external siblings** of this checkout — never nested under the repo root (a nested worktree gets
-  walked by broad globs and its duplicate `AGENTS.md` misleads agents). If a repo needs no setup
-  beyond `pnpm install`, drop `dev:setup`/`worktree:new`; keep the external-sibling rule regardless.
+  install); `pnpm worktree:new <branch>` creates a grouped external worktree at
+  `worktrees/<repo>/<branch>` and runs setup in it; `pnpm worktree:clean <branch>` removes the
+  completed worktree and local branch after merge. Worktrees are **external siblings** of this
+  checkout — never nested under the repo root (a nested worktree gets walked by broad globs and its
+  duplicate `AGENTS.md` misleads agents). If a repo needs no setup beyond `pnpm install`, drop
+  `dev:setup`; keep `worktree:new`, `worktree:clean`, and the external-sibling rule regardless.
 - **No emojis** anywhere. **Immutability** — return new values, don't mutate inputs. Handle errors
   explicitly and validate external input at boundaries. Diagrams in Mermaid, inline. No hardcoded
   secrets — credentials via environment only; redact secrets, tokens, and PII in logs; if you find
